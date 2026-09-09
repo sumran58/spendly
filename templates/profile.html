@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Your profile — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="profile-section">
+    <div class="profile-header">
+        <h1 class="profile-title">Your profile</h1>
+        <p class="profile-subtitle">Account details and spending summary</p>
+    </div>
+
+    <div class="profile-card">
+        <h2 class="profile-card-title">Account</h2>
+        <div class="profile-info">
+            <div class="profile-info-row">
+                <span class="profile-info-label">Name</span>
+                <span class="profile-info-value">{{ user["name"] }}</span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">Email</span>
+                <span class="profile-info-value">{{ user["email"] }}</span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">Member since</span>
+                <span class="profile-info-value">{{ member_since }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-stats">
+        <div class="profile-stat">
+            <span class="profile-stat-label">Total spent</span>
+            <span class="profile-stat-value">{{ total_spent_display }}</span>
+        </div>
+        <div class="profile-stat">
+            <span class="profile-stat-label">Transactions</span>
+            <span class="profile-stat-value">{{ transaction_count }}</span>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <h2 class="profile-card-title">Spending by category</h2>
+        <div class="profile-bars">
+            {% for category in categories %}
+            <div class="profile-bar-row">
+                <span class="profile-bar-label">{{ category.name }}</span>
+                <div class="profile-bar-track">
+                    <div class="profile-bar" style="width: {{ category.percent }}%;"></div>
+                </div>
+                <span class="profile-bar-amount">{{ category.amount_display }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

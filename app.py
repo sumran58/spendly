@@ -1,6 +1,7 @@
 import functools
 import os
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -28,6 +29,14 @@ def login_required(view):
     return wrapped_view
 
 
+# Mirrors the fixed category list seeded in database/db.py's seed_db()
+CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
+
+
+def format_currency(amount):
+    return f"₹{amount:,.2f}"
+
+
 @app.route("/")
 def landing():
     return render_template("landing.html")
@@ -36,6 +45,8 @@ def landing():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
+        if session.get("user_id") is not None:
+            return redirect(url_for("profile"))
         return render_template("register.html")
 
     name = request.form.get("name", "").strip()
@@ -83,6 +94,8 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
+        if session.get("user_id") is not None:
+            return redirect(url_for("profile"))
         return render_template("login.html")
 
     email = request.form.get("email", "").strip().lower()
@@ -127,7 +140,52 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
-    return "Profile page — coming in Step 4"
+    db = get_db()
+    try:
+        user = db.execute(
+            "SELECT name, email, created_at FROM users WHERE id = ?",
+            (session["user_id"],),
+        ).fetchone()
+        category_rows = db.execute(
+            "SELECT category, SUM(amount) AS total, COUNT(*) AS count "
+            "FROM expenses WHERE user_id = ? GROUP BY category",
+            (session["user_id"],),
+        ).fetchall()
+    finally:
+        db.close()
+
+    totals_by_category = {row["category"]: row["total"] for row in category_rows}
+    counts_by_category = {row["category"]: row["count"] for row in category_rows}
+
+    total_spent = sum(totals_by_category.values())
+    transaction_count = sum(counts_by_category.values())
+    max_category_total = max(totals_by_category.values(), default=0)
+
+    categories = []
+    for name in CATEGORIES:
+        total = totals_by_category.get(name, 0)
+        percent = round((total / max_category_total) * 100) if max_category_total > 0 else 0
+        categories.append({
+            "name": name,
+            "amount_display": format_currency(total),
+            "percent": percent,
+        })
+
+    try:
+        member_since = datetime.strptime(
+            user["created_at"], "%Y-%m-%d %H:%M:%S"
+        ).strftime("%B %Y")
+    except (ValueError, TypeError):
+        member_since = "—"
+
+    return render_template(
+        "profile.html",
+        user=user,
+        member_since=member_since,
+        total_spent_display=format_currency(total_spent),
+        transaction_count=transaction_count,
+        categories=categories,
+    )
 
 
 @app.route("/expenses/add")

@@ -2,6 +2,10 @@
 
 {% block title %}Your profile — Spendly{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
 {% block content %}
 
 <section class="profile-section">
@@ -28,6 +32,25 @@
         </div>
     </div>
 
+    <div class="filter-bar">
+        <div class="filter-presets">
+            <a href="{{ url_for('profile', date_from=presets.this_month.date_from, date_to=presets.this_month.date_to) }}"
+               class="filter-preset{{ ' is-active' if active_preset == 'this_month' else '' }}">This Month</a>
+            <a href="{{ url_for('profile', date_from=presets.last_3_months.date_from, date_to=presets.last_3_months.date_to) }}"
+               class="filter-preset{{ ' is-active' if active_preset == 'last_3_months' else '' }}">Last 3 Months</a>
+            <a href="{{ url_for('profile', date_from=presets.last_6_months.date_from, date_to=presets.last_6_months.date_to) }}"
+               class="filter-preset{{ ' is-active' if active_preset == 'last_6_months' else '' }}">Last 6 Months</a>
+            <a href="{{ url_for('profile') }}"
+               class="filter-preset{{ ' is-active' if active_preset == 'all_time' else '' }}">All Time</a>
+        </div>
+        <form method="get" action="{{ url_for('profile') }}" class="filter-custom-range">
+            <input type="date" name="date_from" value="{{ date_from_str or '' }}">
+            <span class="filter-range-sep">to</span>
+            <input type="date" name="date_to" value="{{ date_to_str or '' }}">
+            <button type="submit" class="filter-apply{{ ' is-active' if active_preset == 'custom' else '' }}">Apply</button>
+        </form>
+    </div>
+
     <div class="profile-stats">
         <div class="profile-stat">
             <span class="profile-stat-label">Total spent</span>
@@ -37,6 +60,24 @@
             <span class="profile-stat-label">Transactions</span>
             <span class="profile-stat-value">{{ transaction_count }}</span>
         </div>
+    </div>
+
+    <div class="profile-card">
+        <h2 class="profile-card-title">Recent transactions</h2>
+        {% if recent_transactions %}
+        <div class="profile-transactions">
+            {% for txn in recent_transactions %}
+            <div class="profile-transaction-row">
+                <span class="profile-transaction-date">{{ txn.date }}</span>
+                <span class="profile-transaction-category">{{ txn.category }}</span>
+                <span class="profile-transaction-description">{{ txn.description or "" }}</span>
+                <span class="profile-transaction-amount">{{ txn.amount_display }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="profile-empty">No transactions in this period.</p>
+        {% endif %}
     </div>
 
     <div class="profile-card">

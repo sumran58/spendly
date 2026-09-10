@@ -155,7 +155,7 @@
 
 .profile-transaction-row {
     display: grid;
-    grid-template-columns: 90px 110px 1fr 90px;
+    grid-template-columns: 90px 110px 1fr 90px auto;
     align-items: baseline;
     gap: 1rem;
     padding: 0.6rem 0;
@@ -186,6 +186,15 @@
     color: var(--ink);
     text-align: right;
 }
+
+.profile-transaction-edit {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-align: right;
+}
+
+.profile-transaction-edit:hover { text-decoration: underline; }
 
 .profile-empty {
     font-size: 0.9rem;
@@ -292,6 +301,7 @@
     .profile-transaction-row { grid-template-columns: 1fr 1fr; }
     .profile-transaction-description { grid-column: 1 / -1; }
     .profile-transaction-amount { text-align: left; }
+    .profile-transaction-edit { text-align: left; }
 
     .filter-bar { flex-direction: column; align-items: stretch; }
     .filter-custom-range { margin-left: 0; }

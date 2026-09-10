@@ -9,7 +9,20 @@
 }
 
 .profile-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
     margin-bottom: 2rem;
+}
+
+.profile-add-btn {
+    width: auto;
+    display: inline-block;
+    flex-shrink: 0;
+    padding: 0.6rem 1.25rem;
+    margin-top: 0;
+    white-space: nowrap;
 }
 
 .profile-title {
@@ -268,6 +281,8 @@
 /* ------------------------------------------------------------------ */
 
 @media (max-width: 600px) {
+    .profile-header { flex-direction: column; align-items: stretch; }
+    .profile-add-btn { text-align: center; }
     .profile-info-row { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
     .profile-info-value { text-align: left; }
     .profile-stats { grid-template-columns: 1fr; }

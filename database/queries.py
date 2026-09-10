@@ -51,3 +51,16 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
         return db.execute(query, params).fetchall()
     finally:
         db.close()
+
+
+def add_expense(user_id, amount, category, date, description):
+    db = get_db()
+    try:
+        db.execute(
+            "INSERT INTO expenses (user_id, amount, category, date, description) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (user_id, amount, category, date, description),
+        )
+        db.commit()
+    finally:
+        db.close()

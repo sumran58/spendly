@@ -1,12 +1,14 @@
+import calendar
 import functools
 import os
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database.db import get_db, init_db, seed_db
+from database.queries import get_category_breakdown, get_recent_transactions, get_summary_stats
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
@@ -35,6 +37,23 @@ CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping
 
 def format_currency(amount):
     return f"₹{amount:,.2f}"
+
+
+def _parse_date(value):
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return None
+
+
+def _months_ago(base, months):
+    month = base.month - months
+    year = base.year
+    while month <= 0:
+        month += 12
+        year -= 1
+    day = min(base.day, calendar.monthrange(year, month)[1])
+    return base.replace(year=year, month=month, day=day)
 
 
 @app.route("/")
@@ -140,25 +159,56 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
+    today = date.today()
+    date_from = _parse_date(request.args.get("date_from", ""))
+    date_to = _parse_date(request.args.get("date_to", ""))
+
+    if date_from and date_to and date_from > date_to:
+        flash("Start date must be before end date.")
+        date_from = date_to = None
+
+    date_from_str = date_from.isoformat() if date_from else None
+    date_to_str = date_to.isoformat() if date_to else None
+
+    presets = {
+        "this_month": {
+            "date_from": today.replace(day=1).isoformat(),
+            "date_to": today.isoformat(),
+        },
+        "last_3_months": {
+            "date_from": _months_ago(today, 3).isoformat(),
+            "date_to": today.isoformat(),
+        },
+        "last_6_months": {
+            "date_from": _months_ago(today, 6).isoformat(),
+            "date_to": today.isoformat(),
+        },
+    }
+    if date_from_str is None and date_to_str is None:
+        active_preset = "all_time"
+    else:
+        active_preset = next(
+            (key for key, preset in presets.items()
+             if preset["date_from"] == date_from_str and preset["date_to"] == date_to_str),
+            "custom",
+        )
+
     db = get_db()
     try:
         user = db.execute(
             "SELECT name, email, created_at FROM users WHERE id = ?",
             (session["user_id"],),
         ).fetchone()
-        category_rows = db.execute(
-            "SELECT category, SUM(amount) AS total, COUNT(*) AS count "
-            "FROM expenses WHERE user_id = ? GROUP BY category",
-            (session["user_id"],),
-        ).fetchall()
     finally:
         db.close()
 
-    totals_by_category = {row["category"]: row["total"] for row in category_rows}
-    counts_by_category = {row["category"]: row["count"] for row in category_rows}
+    total_spent, transaction_count = get_summary_stats(
+        session["user_id"], date_from_str, date_to_str
+    )
+    category_rows = get_category_breakdown(session["user_id"], date_from_str, date_to_str)
+    recent_rows = get_recent_transactions(session["user_id"], date_from=date_from_str, date_to=date_to_str)
 
-    total_spent = sum(totals_by_category.values())
-    transaction_count = sum(counts_by_category.values())
+    totals_by_category = {row["category"]: row["total"] for row in category_rows}
     max_category_total = max(totals_by_category.values(), default=0)
 
     categories = []
@@ -170,6 +220,16 @@ def profile():
             "amount_display": format_currency(total),
             "percent": percent,
         })
+
+    recent_transactions = [
+        {
+            "date": row["date"],
+            "category": row["category"],
+            "description": row["description"],
+            "amount_display": format_currency(row["amount"]),
+        }
+        for row in recent_rows
+    ]
 
     try:
         member_since = datetime.strptime(
@@ -185,6 +245,11 @@ def profile():
         total_spent_display=format_currency(total_spent),
         transaction_count=transaction_count,
         categories=categories,
+        recent_transactions=recent_transactions,
+        presets=presets,
+        active_preset=active_preset,
+        date_from_str=date_from_str,
+        date_to_str=date_to_str,
     )
 
 

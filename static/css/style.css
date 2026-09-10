@@ -120,6 +120,29 @@ a { color: inherit; text-decoration: none; }
 .main-content { min-height: calc(100vh - 60px - 100px); }
 
 /* ------------------------------------------------------------------ */
+/* Flash messages                                                      */
+/* ------------------------------------------------------------------ */
+
+.flash-messages {
+    max-width: 800px;
+    margin: 1.5rem auto 0;
+    padding: 0 2rem;
+}
+
+.flash {
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.flash-error {
+    background: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid #f5c6c2;
+}
+
+/* ------------------------------------------------------------------ */
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -580,139 +603,6 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ------------------------------------------------------------------ */
-/* Profile page                                                        */
-/* ------------------------------------------------------------------ */
-
-.profile-section {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 4rem 2rem 6rem;
-}
-
-.profile-header {
-    margin-bottom: 2rem;
-}
-
-.profile-title {
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 4vw, 2.75rem);
-    color: var(--ink);
-    margin-bottom: 0.5rem;
-}
-
-.profile-subtitle {
-    font-size: 0.9rem;
-    color: var(--ink-muted);
-}
-
-.profile-card {
-    background: var(--paper-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-}
-
-.profile-card-title {
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    color: var(--ink);
-    margin-bottom: 1.25rem;
-}
-
-.profile-info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border-soft);
-}
-
-.profile-info-row:last-child { border-bottom: none; }
-
-.profile-info-label {
-    font-size: 0.85rem;
-    color: var(--ink-muted);
-    flex-shrink: 0;
-}
-
-.profile-info-value {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--ink);
-    text-align: right;
-    overflow-wrap: anywhere;
-}
-
-.profile-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.profile-stat {
-    background: var(--paper-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.profile-stat-label {
-    font-size: 0.85rem;
-    color: var(--ink-muted);
-}
-
-.profile-stat-value {
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 1.5rem;
-    color: var(--ink);
-}
-
-.profile-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 1.1rem;
-}
-
-.profile-bar-row {
-    display: grid;
-    grid-template-columns: 110px 1fr 90px;
-    align-items: center;
-    gap: 1rem;
-}
-
-.profile-bar-label {
-    font-size: 0.9rem;
-    color: var(--ink-soft);
-}
-
-.profile-bar-track {
-    height: 10px;
-    background: var(--border-soft);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.profile-bar {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 999px;
-    transition: width 0.6s ease;
-}
-
-.profile-bar-amount {
-    font-size: 0.85rem;
-    color: var(--ink-muted);
-    text-align: right;
-}
-
-/* ------------------------------------------------------------------ */
 /* How it works modal                                                  */
 /* ------------------------------------------------------------------ */
 
@@ -831,10 +721,4 @@ a { color: inherit; text-decoration: none; }
     .hero-actions { flex-direction: column; width: 100%; }
     .hero-actions .btn-primary { width: 100%; text-align: center; }
     .mock-stats { grid-template-columns: 1fr; }
-
-    .profile-info-row { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
-    .profile-info-value { text-align: left; }
-    .profile-stats { grid-template-columns: 1fr; }
-    .profile-bar-row { grid-template-columns: 80px 1fr; }
-    .profile-bar-amount { grid-column: 1 / -1; text-align: left; }
 }

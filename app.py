@@ -11,8 +11,10 @@ from database.db import get_db, init_db, seed_db
 from database.queries import (
     add_expense as insert_expense,
     get_category_breakdown,
+    get_expense_by_id,
     get_recent_transactions,
     get_summary_stats,
+    update_expense,
 )
 
 app = Flask(__name__)
@@ -228,6 +230,7 @@ def profile():
 
     recent_transactions = [
         {
+            "id": row["id"],
             "date": row["date"],
             "category": row["category"],
             "description": row["description"],
@@ -302,10 +305,55 @@ def add_expense():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    expense = get_expense_by_id(session["user_id"], id)
+    if expense is None:
+        flash("Expense not found.")
+        return redirect(url_for("profile"))
+
+    if request.method == "GET":
+        return render_template(
+            "edit_expense.html", categories=CATEGORIES, expense=expense,
+            amount=expense["amount"], category=expense["category"],
+            date=expense["date"], description=expense["description"],
+        )
+
+    amount_raw = request.form.get("amount", "")
+    category = request.form.get("category", "")
+    date_raw = request.form.get("date", "")
+    description = request.form.get("description", "").strip() or None
+
+    try:
+        amount = float(amount_raw)
+    except ValueError:
+        amount = None
+
+    if amount is None or amount <= 0:
+        return render_template(
+            "edit_expense.html", categories=CATEGORIES, expense=expense,
+            error="Please enter a valid amount greater than ₹0.",
+            amount=amount_raw, category=category, date=date_raw, description=description,
+        )
+
+    if category not in CATEGORIES:
+        return render_template(
+            "edit_expense.html", categories=CATEGORIES, expense=expense,
+            error="Please select a valid category.",
+            amount=amount_raw, category=category, date=date_raw, description=description,
+        )
+
+    if _parse_date(date_raw) is None:
+        return render_template(
+            "edit_expense.html", categories=CATEGORIES, expense=expense,
+            error="Please enter a valid date.",
+            amount=amount_raw, category=category, date=date_raw, description=description,
+        )
+
+    update_expense(session["user_id"], id, amount, category, date_raw, description)
+    flash("Expense updated.")
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")

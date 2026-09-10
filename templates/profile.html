@@ -75,6 +75,7 @@
                 <span class="profile-transaction-category">{{ txn.category }}</span>
                 <span class="profile-transaction-description">{{ txn.description or "" }}</span>
                 <span class="profile-transaction-amount">{{ txn.amount_display }}</span>
+                <a href="{{ url_for('edit_expense', id=txn.id) }}" class="profile-transaction-edit">Edit</a>
             </div>
             {% endfor %}
         </div>
